@@ -1,0 +1,112 @@
+{% extends 'crawler/index.html' %} {% load static %} {% block content %}
+<div class="mb-3">
+  <a href="{% url "crawler:index" %}" class="btn btn-outline-dark" >
+    <i class="bi bi-arrow-left"></i> Go back
+  </a>
+
+</div>
+<div class="col-md-6">
+  <div class="form-section mb-4">
+    <h4>D&R Category Link Crawler</h4>
+    <form id="main_form">
+      {% csrf_token %}
+      <input
+        class="form-control mb-3"
+        type="text"
+        name="category"
+        placeholder="Enter category name..."
+        id="category_name"
+      />
+      <input
+        class="form-control mb-3"
+        type="text"
+        name="input_text"
+        placeholder="Copy & paste the category URL..."
+        id="category_url"
+      />
+      <input
+        class="form-control mb-3"
+        type="number"
+        name="input_text"
+        placeholder="Enter the page number..."
+        id="page_number"
+      />
+
+      <button id="submit_btn" class="btn btn-outline-danger" type="submit">Submit</button>
+    </form>
+
+
+  </div>
+
+  <div class="outputs-section">
+    <div class="output">
+      <h4>Dynamic Output</h4>
+      <p id="progress">{{ key }}</p>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+  $(document).ready(function(){
+    function updateProgress() {
+      $.ajax({
+        type: "POST",
+        data: {
+          task_id: "category",
+          csrfmiddlewaretoken: "{{csrf_token}}"
+        },
+        url: "check-progress/",
+        success: function(response){
+          const progress = response.progress;
+          // Update progress on the page, e.g., progress bar or text
+          $('#progress').text(`Progress: ${progress.toFixed(2)}%`);
+          $('#title').text(`DRCrawler ${progress.toFixed(2)}%`);
+          
+  
+          if (progress < 100) {
+            setTimeout(updateProgress, 2000); // Poll every 2 seconds
+          } else {
+            $('#progress').text('Scraping completed!');
+          }
+        },
+        error: function(){
+          $('#progress').text('Error in checking progress');
+          setTimeout(updateProgress, 2000);
+        }
+      });
+    }
+
+    $("#main_form").submit(function(e){
+      e.preventDefault();
+      $('#progress').text('Scraping started!');
+      $('#submit_btn').attr('disabled', true);
+
+      $.ajax({
+        type: "POST",
+        url: "scrape-category/",
+        data: {
+          url_text: $("#category_url").val(),
+          category: $("#category_name").val(),
+          page_number: $("#page_number").val(),
+          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response){
+          $('.output p').text(response.message);
+
+        },
+        error: function(){
+          $('.output p').text('Error occurred while scraping');
+        }
+      });
+
+      // Start updating progress
+      setTimeout(updateProgress, 5000);
+    });
+  });
+</script>
+
+{% endblock scripts %}

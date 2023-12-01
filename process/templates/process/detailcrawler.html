@@ -1,0 +1,80 @@
+{% extends 'crawler/index.html' %} {% load static %} {% block content %}
+<div class="col-md-6">
+  <div class="form-section mb-4">
+    <h4 class="mb-4">D&R Book Crawler</h4>
+    <form id="main_form">
+      {% csrf_token %}
+      <h5>Click for the magic happen:</h5> 
+      <button id="submit_btn" class="btn btn-outline-danger" type="submit">Submit</button>
+    </form>
+
+  </div>
+
+  <div class="outputs-section">
+    <div class="output">
+      <h4>Dynamic Output</h4>
+      <p id="progress"></p>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+  $(document).ready(function(){
+    function updateProgress() {
+      $.ajax({
+        type: "POST",
+        data: {
+          task_id: "books",
+          csrfmiddlewaretoken: "{{csrf_token}}"
+        },
+        url: '{% url "process:check_progress" %}',
+        success: function(response){
+          const progress = response.progress;
+          // Update progress on the page, e.g., progress bar or text
+          $('#progress').text(`Progress: ${progress.toFixed(4)}%`);
+          $('#title').text(`DRCrawler ${progress.toFixed(4)}%`);
+          
+  
+          if (progress < 100) {
+            setTimeout(updateProgress, 2000); // Poll every 2 seconds
+          } else {
+            $('#progress').text('Scraping completed!');
+          }
+        },
+        error: function(){
+          $('#progress').text('Error in checking progress');
+          setTimeout(updateProgress, 2000);
+        }
+      });
+    }
+
+    $("#main_form").submit(function(e){
+      e.preventDefault();
+      $('#progress').text('Scraping started!');
+      $('#submit_btn').attr('disabled', true);
+      
+      $.ajax({
+        type: "POST",
+        url: '{% url "process:scrape_book_details" %}',
+        data: {
+          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response){
+          $('.output p').text(response.message);
+        },
+        error: function(){
+          $('.output p').text('Error occurred while scraping');
+        }
+      });
+
+      // Start updating progress
+      setTimeout(updateProgress, 2000);
+    });
+  });
+</script>
+
+{% endblock scripts %}
