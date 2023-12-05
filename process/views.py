@@ -212,7 +212,6 @@ def scrape_book_details(request):
                     'publisher_name': publisher_name,
                     'current_price': current_price,
                     'image_url': image_url,
-                    **translated_properties  # Unpack additional properties
                 }
             )
 
