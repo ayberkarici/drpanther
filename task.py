@@ -157,4 +157,4 @@ def scrape_data():
 if __name__ == '__main__':
     while True:
         scrape_data()
-        time.sleep(60)  # Wait for 60 seconds before next run
+        time.sleep(10)  # Wait for 60 seconds before next run

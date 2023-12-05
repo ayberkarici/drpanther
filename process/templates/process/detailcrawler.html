@@ -5,15 +5,18 @@
     <form id="main_form">
       {% csrf_token %}
       <h5>Click for the magic happen:</h5> 
-      <button id="submit_btn" class="btn btn-outline-danger" type="submit">Submit</button>
+      <button id="submit_btn" class="btn btn-outline-danger" disabled="disabled" type="submit" >Submit</button>
     </form>
 
   </div>
 
   <div class="outputs-section">
     <div class="output">
-      <h4>Dynamic Output</h4>
-      <p id="progress"></p>
+      <h4 class="mb-4">Progress</h4>
+      <div class="progress">
+        <div id="progress_bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="100" ></div>
+      </div>
+      <p class="text-center" id="progress"></p>
 
     </div>
   </div>
@@ -35,9 +38,9 @@
         success: function(response){
           const progress = response.progress;
           // Update progress on the page, e.g., progress bar or text
-          $('#progress').text(`Progress: ${progress.toFixed(4)}%`);
+          $('#progress').text(`${progress.toFixed(4)}%`);
           $('#title').text(`DRCrawler ${progress.toFixed(4)}%`);
-          
+          $('#progress_bar').css('width', `${progress.toFixed(4)}%`);
   
           if (progress < 100) {
             setTimeout(updateProgress, 2000); // Poll every 2 seconds
@@ -51,7 +54,7 @@
         }
       });
     }
-
+    {% comment %} 
     $("#main_form").submit(function(e){
       e.preventDefault();
       $('#progress').text('Scraping started!');
@@ -70,10 +73,10 @@
           $('.output p').text('Error occurred while scraping');
         }
       });
-
+    });
+     {% endcomment %}
       // Start updating progress
       setTimeout(updateProgress, 2000);
-    });
   });
 </script>
 
