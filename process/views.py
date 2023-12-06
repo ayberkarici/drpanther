@@ -115,10 +115,10 @@ def scrape_book_details(request):
                 try:
                     detail_response = requests.get(current_url)
                     if detail_response.status_code != 200:
-                        detail_response = None
-                        
                         if detail_response.status_code == 404:
                             print(f"404 URL found, skipping.. - {current_url}")        
+                        
+                        detail_response = None
                         raise requests.exceptions.RequestException
 
                 except requests.exceptions.RequestException:
