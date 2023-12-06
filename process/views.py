@@ -60,6 +60,10 @@ def scrape_urls(request):
                     # Check if the response is successful (200 OK)
                     if response.status_code != 200:
                         response = None
+                        
+                        if response.status_code == 404:
+                            print(f"404 URL found, skipping.. - {current_url}")        
+                        
                         raise requests.exceptions.RequestException
                 except requests.exceptions.RequestException:
                     print(f"No response from {current_url}. Retrying in 4 seconds...")
@@ -112,7 +116,11 @@ def scrape_book_details(request):
                     detail_response = requests.get(current_url)
                     if detail_response.status_code != 200:
                         detail_response = None
+                        
+                        if detail_response.status_code == 404:
+                            print(f"404 URL found, skipping.. - {current_url}")        
                         raise requests.exceptions.RequestException
+
                 except requests.exceptions.RequestException:
                     print(f"No response from {current_url}. Retrying in 4 seconds...")
                     time.sleep(4)

@@ -5,7 +5,7 @@
     <form id="main_form">
       {% csrf_token %}
       <h5>Click for the magic happen:</h5> 
-      <button id="submit_btn" class="btn btn-outline-danger" disabled="disabled" type="submit" >Submit</button>
+      <button id="submit_btn" class="btn btn-outline-danger" type="submit" >Submit</button>
     </form>
 
   </div>
@@ -54,7 +54,7 @@
         }
       });
     }
-    {% comment %} 
+    
     $("#main_form").submit(function(e){
       e.preventDefault();
       $('#progress').text('Scraping started!');
@@ -74,7 +74,7 @@
         }
       });
     });
-     {% endcomment %}
+     
       // Start updating progress
       setTimeout(updateProgress, 2000);
   });
