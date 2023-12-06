@@ -6,6 +6,7 @@ class ScrapedURL(models.Model):
     url = models.URLField()
     category = models.CharField(max_length=256)
     is_scrapped = models.BooleanField(default=False)
+    error_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.category}: {self.url}"

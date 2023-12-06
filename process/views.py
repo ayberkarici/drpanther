@@ -59,11 +59,10 @@ def scrape_urls(request):
                     response = requests.get(current_url)
                     # Check if the response is successful (200 OK)
                     if response.status_code != 200:
-                        response = None
-                        
                         if response.status_code == 404:
-                            print(f"404 URL found, skipping.. - {current_url}")        
-                        
+                            print(f"404 URL found, skipping.. - {current_url}")
+
+                        response = None
                         raise requests.exceptions.RequestException
                 except requests.exceptions.RequestException:
                     print(f"No response from {current_url}. Retrying in 4 seconds...")
@@ -115,16 +114,24 @@ def scrape_book_details(request):
                 try:
                     detail_response = requests.get(current_url)
                     if detail_response.status_code != 200:
-                        if detail_response.status_code == 404:
-                            print(f"404 URL found, skipping.. - {current_url}")        
-                        
                         detail_response = None
                         raise requests.exceptions.RequestException
 
                 except requests.exceptions.RequestException:
-                    print(f"No response from {current_url}. Retrying in 4 seconds...")
-                    time.sleep(4)
-
+                    urls_to_scrape[idx].error_count += 1
+                    
+                    if urls_to_scrape[idx].error_count > 3:
+                        urls_to_scrape[idx].is_scrapped = True
+                        urls_to_scrape[idx].save()
+                        print(f"URL {current_url} marked as scrapped.")
+                        break
+                    else:
+                        print(f"No response from {current_url}. Retrying in 4 seconds...")
+                        time.sleep(4)
+                    
+            if urls_to_scrape[idx].error_count > 3:
+                continue
+            
             detail_soup = BeautifulSoup(detail_response.content, 'html.parser')
             
             # Extract book details
