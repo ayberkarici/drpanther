@@ -25,19 +25,9 @@ class Book(models.Model):
     translator = models.CharField(max_length=255, null=True, blank=True)
     publisher_name = models.CharField(max_length=255, null=True, blank=True)
     current_price = models.CharField(max_length=50, null=True, blank=True)
-    paper_type = models.CharField(max_length=100, null=True, blank=True)  # Example for 'Hamur Tipi'
-    page_number = models.CharField(max_length=100, null=True, blank=True)  # Example for 'Sayfa Sayısı'
-    size = models.CharField(max_length=100, null=True, blank=True)  # Example for 'Ebat'
-    first_print_year = models.CharField(max_length=50, null=True, blank=True)  # Example for 'İlk Baskı Yılı'
-    print_number = models.CharField(max_length=50, null=True, blank=True)  # Example for 'Baskı Sayısı'
-    language = models.CharField(max_length=50, null=True, blank=True)  # Example for 'Dil'
     isbn = models.CharField(max_length=20, null=True, blank=True)
     image_url = models.URLField(null=True, blank=True)
-    media_type = models.CharField(max_length=50, null=True, blank=True)  # Example for 'Medya Cinsi'
-    original_title = models.CharField(max_length=255, null=True, blank=True) # Example for 'Orijinal Adı'
-    original_language = models.CharField(max_length=50, null=True, blank=True) # Example for 'Orijinal Dili'
-    book_set = models.CharField(max_length=50, null=True, blank=True) # Example for 'Kitap Seti'
-    sensibility = models.CharField(max_length=50, null=True, blank=True) # Example for 'Hassasiyet'
+    others = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.title

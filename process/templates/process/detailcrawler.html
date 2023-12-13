@@ -43,14 +43,14 @@
           $('#progress_bar').css('width', `${progress.toFixed(4)}%`);
   
           if (progress < 100) {
-            setTimeout(updateProgress, 2000); // Poll every 2 seconds
+            setTimeout(updateProgress, 10000); // Poll every 2 seconds
           } else {
             $('#progress').text('Scraping completed!');
           }
         },
         error: function(){
           $('#progress').text('Error in checking progress');
-          setTimeout(updateProgress, 2000);
+          setTimeout(updateProgress, 10000);
         }
       });
     }
@@ -76,7 +76,7 @@
     });
      
       // Start updating progress
-      setTimeout(updateProgress, 2000);
+      setTimeout(updateProgress, 10000);
   });
 </script>
 

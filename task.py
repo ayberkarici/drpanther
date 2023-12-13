@@ -3,6 +3,7 @@ import django
 import time
 import requests
 from bs4 import BeautifulSoup
+import json
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'drpanther.settings')
 django.setup()
@@ -10,15 +11,16 @@ django.setup()
 from process.models import *  # import your models here
 
 def scrape_data():
-
     print("I'm in start")
     # Create or get a ScrapeProgress instance
     task_id = "books"  # This should be unique for each task
     progress_record, created = ScrapeProgress.objects.get_or_create(task_id=task_id)
     
+    # Get all unique URLs that are not scrapped yet
     urls_to_scrape = ScrapedURL.objects.filter(is_scrapped=False)
-    total_urls = urls_to_scrape.count()
     
+    urls_to_scrape_clean = list(ScrapedURL.objects.values('url', 'category').filter(is_scrapped=False).distinct())
+    total_urls = len(urls_to_scrape_clean) + Book.objects.count()
     print("I'm in")
 
     for idx, scraped_url in enumerate(urls_to_scrape):
@@ -33,10 +35,22 @@ def scrape_data():
                 if detail_response.status_code != 200:
                     detail_response = None
                     raise requests.exceptions.RequestException
-            except requests.exceptions.RequestException:
-                print(f"No response from {current_url}. Retrying in 4 seconds...")
-                time.sleep(4)
 
+            except requests.exceptions.RequestException:
+                urls_to_scrape[idx].error_count += 1
+                
+                if urls_to_scrape[idx].error_count > 3:
+                    urls_to_scrape[idx].is_scrapped = True
+                    urls_to_scrape[idx].save()
+                    print(f"URL {current_url} marked as scrapped.")
+                    break
+                else:
+                    print(f"No response from {current_url}. Retrying in 4 seconds...")
+                    time.sleep(4)
+                
+        if urls_to_scrape[idx].error_count > 3:
+            continue
+        
         detail_soup = BeautifulSoup(detail_response.content, 'html.parser')
         
         # Extract book details
@@ -93,7 +107,8 @@ def scrape_data():
 
         # Handling cases where required data might be missing
         if not isbn or not description or not image_url:
-            return None
+            print('Required data not found')
+            return False
 
 
         # Extract properties from .short-prop
@@ -103,28 +118,11 @@ def scrape_data():
             value = prop.select_one('span:nth-of-type(2)').text.strip()
             properties[key] = value
 
-        # Define a mapping from extracted keys to your model fields
-        key_mapping = {
-            'baskı_sayısı': 'print_number',
-            'dil': 'language',
-            'ebat': 'size',
-            'hamur_tipi': 'paper_type',
-            'i̇lk_baskı_yılı': 'first_print_year',
-            'sayfa_sayısı': 'page_number',
-            'medya_cinsi': 'media_type',
-            'orijinal_adı': 'original_title',
-            'orijinal_dili': 'original_language',
-            'kitap_seti' : 'book_set',
-            'hassasiyet' : 'sensibility',
-        }
-
-        # Assuming properties is a dictionary with keys like 'baskı_sayısı', 'dil', etc.
-        translated_properties = {key_mapping.get(k, k): v for k, v in properties.items()}
-
         # Create or update the book record
         book, created = Book.objects.update_or_create(
             isbn=isbn,
             description=description,
+            others=json.dumps(properties),
             defaults={
                 'title': title,
                 'author': author,
@@ -149,12 +147,13 @@ def scrape_data():
         progress_record.progress = progress
         progress_record.save()
         
-    return None
-
-
+    print('Scraping of book details completed successfully')
+    
+    return True
 
 
 if __name__ == '__main__':
-    while True:
-        scrape_data()
-        time.sleep(10)  # Wait for 60 seconds before next run
+    scrape_data()
+    # while True:
+    #     scrape_data()
+    #     time.sleep(10)  # Wait for 60 seconds before next run

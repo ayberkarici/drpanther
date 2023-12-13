@@ -13,6 +13,7 @@ def index (request):
         "key" : ""
     }
     
+        
     return render(request, 'process/index.html', context)
 
 def index_books (request):
@@ -92,19 +93,22 @@ def scrape_urls(request):
 
 def scrape_book_details(request):
     if request.method == 'POST':
-        
-        
+
         print("I'm in start")
         # Create or get a ScrapeProgress instance
         task_id = "books"  # This should be unique for each task
         progress_record, created = ScrapeProgress.objects.get_or_create(task_id=task_id)
         
+        # Get all unique URLs that are not scrapped yet
         urls_to_scrape = ScrapedURL.objects.filter(is_scrapped=False)
-        total_urls = urls_to_scrape.count()
+        
+        urls_to_scrape_clean = list(ScrapedURL.objects.values('url', 'category').filter(is_scrapped=False).distinct())
+        total_urls = len(urls_to_scrape_clean) + Book.objects.count()
         
         print("I'm in")
 
         for idx, scraped_url in enumerate(urls_to_scrape):
+  
             current_url = f"https://www.dr.com.tr/{scraped_url.url}"
             
             print(f"Processing - {current_url}")
@@ -198,28 +202,12 @@ def scrape_book_details(request):
                 value = prop.select_one('span:nth-of-type(2)').text.strip()
                 properties[key] = value
 
-            # Define a mapping from extracted keys to your model fields
-            key_mapping = {
-                'baskı_sayısı': 'print_number',
-                'dil': 'language',
-                'ebat': 'size',
-                'hamur_tipi': 'paper_type',
-                'i̇lk_baskı_yılı': 'first_print_year',
-                'sayfa_sayısı': 'page_number',
-                'medya_cinsi': 'media_type',
-                'orijinal_adı': 'original_title',
-                'orijinal_dili': 'original_language',
-                'kitap_seti' : 'book_set',
-                'hassasiyet' : 'sensibility',
-            }
-
-            # Assuming properties is a dictionary with keys like 'baskı_sayısı', 'dil', etc.
-            translated_properties = {key_mapping.get(k, k): v for k, v in properties.items()}
 
             # Create or update the book record
             book, created = Book.objects.update_or_create(
                 isbn=isbn,
                 description=description,
+                others=json.dumps(properties),
                 defaults={
                     'title': title,
                     'author': author,
