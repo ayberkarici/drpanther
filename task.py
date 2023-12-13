@@ -19,8 +19,8 @@ def scrape_data():
     # Get all unique URLs that are not scrapped yet
     urls_to_scrape = ScrapedURL.objects.filter(is_scrapped=False)
     
-    urls_to_scrape_clean = list(ScrapedURL.objects.values('url', 'category').filter(is_scrapped=False).distinct())
-    total_urls = len(urls_to_scrape_clean) + Book.objects.count()
+    total_urls = ScrapedURL.objects.count()
+    
     print("I'm in")
 
     for idx, scraped_url in enumerate(urls_to_scrape):
@@ -144,8 +144,8 @@ def scrape_data():
         
         # Update progress
         progress = round((Book.objects.count() / total_urls) * 100, 4)
-        progress_record.progress = progress
-        progress_record.save()
+        
+        print(f"{progress}% completed")
         
     print('Scraping of book details completed successfully')
     
