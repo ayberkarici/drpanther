@@ -106,10 +106,10 @@ def scrape_data():
         image_url = image_tag['src'] if image_tag and image_tag.has_attr('src') else ''
 
         # Handling cases where required data might be missing
-        if not isbn or not description or not image_url:
-            print('Required data not found')
-            return False
-
+        if not isbn:
+            print('ISBN not found. Skipping...')
+            continue
+    
 
         # Extract properties from .short-prop
         properties = {}
